@@ -10,15 +10,15 @@ Param(
 
 $connectionString = Get-AutomationVariable -Name "ConnectionString"
 
-$hostPool = Get-AzWvdHostPool -Name $HostPoolName -ResourceGroupName $ResourceGroupName
 
-$sessionHosts = $hostPool | Get-AzWvdSessionHost
+
+$sessionHosts = Get-AzWvdSessionHost -HostPoolName $HostPoolName -ResourceGroupName $ResourceGroupName
 
 $take = [math]::Floor(($sessionHosts.Length * $Percentage) / 100) - 1
 
 for ($i = 0; $i -lt $take; $i++) {
     try {
-        $sessionHosts[$i] | Update-AzWvdSessionHost -AllowNewSession $false -ErrorAction Stop
+        Update-AzWvdSessionHost -HostPoolName $HostPoolName -Name $sessionHosts[$i].Id.Split("/")[-1] -AllowNewSession:$false
         Update-Status -ConnectionString $connectionString `
             -TableName status `
             -HostPoolName $HostPoolName `
