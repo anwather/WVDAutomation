@@ -4,12 +4,12 @@ function Update-Status {
 
     $ctx = New-AzStorageContext -ConnectionString $connectionString
 
-    $table = (Get-AzStorageTable -Name $tableName -Context $ctx).CloudTable
+    $table = (Get-AzStorageTable -Name $TableName -Context $ctx).CloudTable
 
-    $row = Get-AzTableRow -Table $table -PartitionKey $partitionKey -RowKey $hostName
+    $row = Get-AzTableRow -Table $table -PartitionKey $HostPoolName -RowKey $SessionHostName
 
     if ($null -eq $row) {
-        Add-AzTableRow -Table $table -PartitionKey $partitionKey -RowKey $hostname -property @{
+        Add-AzTableRow -Table $table -PartitionKey $HostPoolName -RowKey $SessionHostName -property @{
             Status         = $status
             LastUpdateTime = $(Get-Date -Format "dd/MM/yyyy HH:mm:ss")
         }
@@ -27,7 +27,7 @@ function Get-AllCurrentStatus {
 
     $ctx = New-AzStorageContext -ConnectionString $connectionString
 
-    $table = (Get-AzStorageTable -Name $tableName -Context $ctx).CloudTable
+    $table = (Get-AzStorageTable -Name $TableName -Context $ctx).CloudTable
 
     $rows = Get-AzTableRowByPartitionKey -Table $table -PartitionKey $HostPoolName
 
