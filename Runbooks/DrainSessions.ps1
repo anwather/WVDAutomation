@@ -16,17 +16,17 @@ $sessionHosts = Get-AzWvdSessionHost -HostPoolName $HostPoolName -ResourceGroupN
 
 Write-Output $sessionHosts
 
-$take = [math]::Floor(($sessionHosts.Length * $Percentage) / 100) - 1
+$take = [math]::Floor(($sessionHosts.Length * ($Percentage / 100)))
 
 for ($i = 0; $i -lt $take; $i++) {
     try {
         Write-Output "Enabling drain on $($sessionHosts[$i].Id.Split("/")[-1])"
-        Update-AzWvdSessionHost -HostPoolName $HostPoolName -Name $sessionHosts[$i].Id.Split("/")[-1] -AllowNewSession:$false
+        Update-AzWvdSessionHost -HostPoolName $HostPoolName -ResourceGroupName $ResourceGroupName -Name $sessionHosts[$i].Id.Split("/")[-1] -AllowNewSession:$false
         Update-Status -ConnectionString $connectionString `
             -TableName status `
             -HostPoolName $HostPoolName `
             -Status "Draining" `
-            -SessionHostName $_.ResourceId.Split("/")[-1]
+            -SessionHostName $sessionHosts[$i].Id.Split("/")[-1]
     }
     catch {
         Write-Error $_.Exception
