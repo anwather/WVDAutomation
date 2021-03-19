@@ -106,5 +106,25 @@ function Check-Completion {
 
 function Send-Reminder {
     [CmdletBinding()]
-    Param()
+    Param($ResourceGroupName, $HostPoolName, $SessionHost, $ConnectionString, $ReminderTime)
+
+    $userSessions = Get-AzWvdUserSession -ResourceGroupName $ResourceGroupName -HostPoolName $HostPoolName -SessionHostName $SessionHost
+
+    foreach ($user in $userSessions) {
+        $msgTitle = "Reboot Notfication"
+        $msgBody = "This machine will be rebooted in $ReminderTime minutes. Please save your work and log off"
+        Send-AzWvdUserSessionMessage -HostPoolName $HostPoolName `
+            -ResourceGroupName $ResourceGroupName `
+            -SessionHostName $SessionHost `
+            -MessageBody $msgBody `
+            -MessageTitle $msgTitle `
+            -UserSessionId $user.Name.Split("/")[-1]
+    }
+    
+    Update-Status -ConnectionString $connectionString `
+        -TableName status `
+        -HostPoolName $HostPoolName `
+        -Status $ReminderTime `
+        -SessionHostName $SessionHost
+
 }

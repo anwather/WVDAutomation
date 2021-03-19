@@ -23,22 +23,63 @@ foreach ($row in $rows) {
                 -HostPoolName $params.HostPoolName `
                 -SessionHost $row.RowKey
             if ($result -eq 1) {
-                Write-Output $row.LastUpdateTime
                 $t = $row.LastUpdateTime -as [datetime]
-                Write-Output "Last update time: $t"
+                Write-Output "$($row.RowKey) last update time: $t"
+                Write-Output "Current time is $(Get-Date)"
                 if (($t).AddHours($Delay) -lt (Get-Date)) {
                     Write-Output "Sending 30 minute warning"
-                    # Send message and update status to 30
+                    Send-Reminder -ConnectionString $connectionString `
+                        -ResourceGroupName $params.ResourceGroupName `
+                        -HostPoolName $params.HostPoolName `
+                        -SessionHost $row.RowKey `
+                        -ReminderTime 30 
                 }
                 else {
-                    $remainingTime = [math]::Round([math]::Abs((New-TimeSpan -Start $t -End (Get-Date).AddHours($Delay)).TotalMinutes))
-                    Write-Output "Remaining time until 30 min message to be sent is $remainingTime"
+                    $remainingTime = [math]::Round((New-TimeSpan -Start $t.AddHours($Delay) -End (Get-Date)).TotalMinutes)
+                    Write-Output "$($row.RowKey) - remaining time until 30 min message to be sent is $remainingTime"
                 }
             }
         }
-        "30" { Write-Output "Sending 20 minute warning" }
-        "20" { Write-Output "Sending 10 minute warning" }
-        "10" { Write-Output "Rebooting the session host" }
+        "30" { 
+            Write-Output "$($row.RowKey) has passed 30 minute warning - check the sessions remaining and proceed"
+            $result = Get-ActiveSessions -ConnectionString $connectionString `
+                -ResourceGroupName $params.ResourceGroupName `
+                -HostPoolName $params.HostPoolName `
+                -SessionHost $row.RowKey
+            if ($result -eq 1) {
+                $t = $row.LastUpdateTime -as [datetime]
+                Write-Output "Sending 20 minute warning"
+                Send-Reminder -ConnectionString $connectionString `
+                    -ResourceGroupName $params.ResourceGroupName `
+                    -HostPoolName $params.HostPoolName `
+                    -SessionHost $row.RowKey `
+                    -ReminderTime 20 
+            }
+        }
+        "20" { 
+            Write-Output "$($row.RowKey) has passed 20 minute warning - check the sessions remaining and proceed"
+            $result = Get-ActiveSessions -ConnectionString $connectionString `
+                -ResourceGroupName $params.ResourceGroupName `
+                -HostPoolName $params.HostPoolName `
+                -SessionHost $row.RowKey
+            if ($result -eq 1) {
+                $t = $row.LastUpdateTime -as [datetime]
+                Write-Output "Sending 10 minute warning"
+                Send-Reminder -ConnectionString $connectionString `
+                    -ResourceGroupName $params.ResourceGroupName `
+                    -HostPoolName $params.HostPoolName `
+                    -SessionHost $row.RowKey `
+                    -ReminderTime 10 
+            }
+        }
+        "10" { 
+            Write-Output "$($row.RowKey) has passed 10 minute warning - scheduling reboot for next cycle"
+            Update-Status -ConnectionString $connectionString `
+                -TableName status `
+                -HostPoolName $params.HostPoolName `
+                -Status "RebootReady" `
+                -SessionHostName $row.RowKey
+        }
         "RebootReady" { 
             Write-Output "Calling for reboot of node $($row.RowKey)"
             Restart-SessionHost -ConnectionString $connectionString `

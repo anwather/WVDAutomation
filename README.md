@@ -31,6 +31,8 @@ Ensure that the resources and storage module are fully installed before attempti
 
 Load all the runbooks. 
 
+Add an automation variable called Delay - type Int - and set it to a value in hours between the initial drain time and when you want to start alerting users. Select encrypted for this variable. 
+
 ### Initial Table Population ###
 
 Run PopulateTable runbook. Parameters are hostpoolname and resourcegroupname - run once for each hostpool.
