@@ -8,10 +8,10 @@ Param(
 
 $connectionString = Get-AutomationVariable -Name "ConnectionString"
 
-$rows = Get-AllCurrentStatus -ConnectionString $connectionString -TableName status -HostPoolName $params.HostPoolName
+$rows = Get-AllCurrentStatus -ConnectionString $connectionString -TableName status -HostPoolName $HostPoolName
 
 foreach ($row in $rows) {
-    if ($row.status -eq "New") {
+    if ($row.Status -eq "New") {
         Write-Output "Enabling drain on $($row.RowKey)"
         Update-AzWvdSessionHost -HostPoolName $HostPoolName -ResourceGroupName $ResourceGroupName -Name $row.RowKey -AllowNewSession:$false
         Update-Status -ConnectionString $connectionString `
