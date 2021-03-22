@@ -35,7 +35,7 @@ foreach ($row in $rows) {
                         -ReminderTime 30 
                 }
                 else {
-                    $remainingTime = [abs]::([math]::Round((New-TimeSpan -Start $t.AddHours($Delay) -End (Get-Date)).TotalMinutes))
+                    $remainingTime = [math]::Abs([math]::Round((New-TimeSpan -Start $t.AddHours($Delay) -End (Get-Date)).TotalMinutes))
                     Write-Output "$($row.RowKey) - remaining time until 30 min message to be sent is $remainingTime minutes."
                 }
             }
