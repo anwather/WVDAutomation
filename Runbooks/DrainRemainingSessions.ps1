@@ -1,8 +1,6 @@
 Param(
     [string]$ResourceGroupName, 
-    [string]$HostPoolName,
-    [ValidateRange(1, 100)]
-    [int]$Percentage
+    [string]$HostPoolName
 )
 
 . .\Login.ps1
