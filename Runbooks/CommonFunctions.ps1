@@ -1,3 +1,5 @@
+# Adding a comment
+
 function Update-Status {
     [CmdletBinding()]
     Param($TableName, $HostPoolName, $SessionHostName, $Status, $ConnectionString)
